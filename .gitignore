@@ -1,0 +1,105 @@
+# ========================
+# Environment & Secrets
+# ========================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets/
+credentials/
+
+# ========================
+# Deployment (Private)
+# ========================
+deploy.sh
+captain-definition
+captain-definition-*
+DEPLOY-GUIDE.md
+
+# ========================
+# Dependencies
+# ========================
+node_modules/
+vendor/
+.pnpm-store/
+
+# ========================
+# Build outputs
+# ========================
+dist/
+build/
+.next/
+out/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# ========================
+# Go
+# ========================
+*.exe
+*.exe~
+*.test
+*.out
+go.work.sum
+
+# ========================
+# IDE & Editor
+# ========================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ========================
+# Logs & Debug
+# ========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ========================
+# Testing
+# ========================
+coverage/
+.nyc_output/
+*.lcov
+
+# ========================
+# Docker
+# ========================
+docker-compose.override.yml
+
+# ========================
+# Database Files
+# ========================
+*.db
+*.sqlite
+*.sqlite3
+data/
+clickhouse-data/
+postgres-data/
+redis-data/
+
+# ========================
+# GeoIP Database
+# ========================
+*.mmdb
+GeoLite2-*.mmdb
+
+# ========================
+# Misc
+# ========================
+.cache/
+tmp/
+temp/
+*.bak
+*.backup

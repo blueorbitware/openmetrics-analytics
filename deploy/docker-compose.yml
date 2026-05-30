@@ -1,0 +1,158 @@
+version: "3.9"
+
+services:
+  # ClickHouse - Event storage
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    container_name: analytics-clickhouse
+    ports:
+      - "8123:8123"   # HTTP interface
+      - "9000:9000"   # Native protocol
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    environment:
+      CLICKHOUSE_DB: analytics
+      CLICKHOUSE_USER: analytics
+      CLICKHOUSE_PASSWORD: analytics_secret
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL - Metadata storage
+  postgres:
+    image: postgres:16-alpine
+    container_name: analytics-postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/migrations:/docker-entrypoint-initdb.d:ro
+    environment:
+      POSTGRES_DB: analytics
+      POSTGRES_USER: analytics
+      POSTGRES_PASSWORD: analytics_secret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analytics -d analytics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - Streams, cache, sessions
+  redis:
+    image: redis:7-alpine
+    container_name: analytics-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Go API Service
+  api:
+    build:
+      context: ../
+      dockerfile: services/api/Dockerfile
+    container_name: analytics-api
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      DATABASE_URL: postgres://analytics:analytics_secret@postgres:5432/analytics?sslmode=disable
+      CLICKHOUSE_DSN: clickhouse://analytics:analytics_secret@clickhouse:9000/analytics
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_ISSUER: analytics-platform
+      CORS_ORIGINS: http://localhost:3000,http://localhost:8081
+    depends_on:
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Go Collector Service (high-throughput event ingestion)
+  collector:
+    build:
+      context: ../
+      dockerfile: services/collector/Dockerfile
+    container_name: analytics-collector
+    ports:
+      - "8081:8081"
+    environment:
+      PORT: 8081
+      DATABASE_URL: postgres://analytics:analytics_secret@postgres:5432/analytics?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      CORS_ORIGINS: "*"
+      RATE_LIMIT_RPS: 10000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Go Worker Service (Redis Streams -> ClickHouse)
+  worker:
+    build:
+      context: ../
+      dockerfile: services/worker/Dockerfile
+    container_name: analytics-worker
+    environment:
+      CLICKHOUSE_DSN: clickhouse://analytics:analytics_secret@clickhouse:9000/analytics
+      REDIS_URL: redis://redis:6379/0
+      BATCH_SIZE: 5000
+      BATCH_TIMEOUT_MS: 2000
+      CONSUMER_GROUP: analytics-workers
+      CONSUMER_NAME: worker-1
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Next.js Dashboard
+  dashboard:
+    build:
+      context: ../apps/dashboard
+      dockerfile: Dockerfile
+    container_name: analytics-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+      NEXT_PUBLIC_COLLECTOR_URL: http://localhost:8081
+    depends_on:
+      - api
+
+  # Demo site with tracking tag installed
+  demo-site:
+    image: nginx:alpine
+    container_name: analytics-demo
+    ports:
+      - "8082:80"
+    volumes:
+      - ../docs/demo-site:/usr/share/nginx/html:ro
+    depends_on:
+      - collector
+
+volumes:
+  clickhouse_data:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: analytics-network

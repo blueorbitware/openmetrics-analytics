@@ -1,0 +1,846 @@
+openapi: 3.0.3
+info:
+  title: Analytics Platform API
+  description: |
+    Enterprise web and app analytics API. 
+    
+    ## Authentication
+    
+    All endpoints (except public config) require authentication via Bearer token.
+    
+    - **JWT Token**: Pass in `Authorization: Bearer <access_token>` header
+    - **API Token**: Pass in `Authorization: Bearer <api_token>` header (for scoped access)
+    
+    ## Workspace Context
+    
+    Most endpoints require a workspace context. Pass the workspace ID in the `X-Workspace-ID` header.
+    
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@analytics.local
+
+servers:
+  - url: http://localhost:8080/v1
+    description: Local development
+  - url: https://api.yourdomain.com/v1
+    description: Production
+
+tags:
+  - name: Auth
+    description: Authentication endpoints
+  - name: Workspaces
+    description: Workspace management
+  - name: Projects
+    description: Project (website/app) management
+  - name: Reports
+    description: Analytics reporting endpoints
+  - name: Banners
+    description: Pop-up/banner campaign management
+  - name: Dashboards
+    description: Custom dashboard management
+  - name: Tokens
+    description: API token management
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, name]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                name:
+                  type: string
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email already registered
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid refresh token
+
+  /config/{publicKey}:
+    get:
+      tags: [Projects]
+      summary: Get project configuration (public endpoint)
+      description: Returns tracking configuration for the JavaScript SDK. No authentication required.
+      parameters:
+        - name: publicKey
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectConfig'
+        '404':
+          description: Project not found
+
+  /workspaces:
+    get:
+      tags: [Workspaces]
+      summary: List workspaces
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of workspaces
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Workspace'
+    post:
+      tags: [Workspaces]
+      summary: Create workspace
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                slug:
+                  type: string
+      responses:
+        '201':
+          description: Workspace created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+
+  /projects:
+    get:
+      tags: [Projects]
+      summary: List projects
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceHeader'
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+    post:
+      tags: [Projects]
+      summary: Create project
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                domain:
+                  type: string
+                timezone:
+                  type: string
+                  default: UTC
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+
+  /reports/events:
+    post:
+      tags: [Reports]
+      summary: Events segmentation report
+      description: Query event data with filters, time ranges, and breakdowns
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventsReportRequest'
+      responses:
+        '200':
+          description: Report results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsReportResponse'
+
+  /reports/funnel:
+    post:
+      tags: [Reports]
+      summary: Funnel analysis report
+      description: Analyze conversion funnels with ordered steps
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FunnelReportRequest'
+      responses:
+        '200':
+          description: Funnel results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FunnelReportResponse'
+
+  /reports/retention:
+    post:
+      tags: [Reports]
+      summary: Retention analysis report
+      description: Analyze user retention over time
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetentionReportRequest'
+      responses:
+        '200':
+          description: Retention results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionReportResponse'
+
+  /reports/users/{anonId}:
+    get:
+      tags: [Reports]
+      summary: Get user timeline
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceHeader'
+        - name: anonId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: project_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: User timeline
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserTimelineResponse'
+
+  /banners:
+    get:
+      tags: [Banners]
+      summary: List banners
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceHeader'
+        - name: project_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of banners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Banner'
+    post:
+      tags: [Banners]
+      summary: Create banner
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBannerRequest'
+      responses:
+        '201':
+          description: Banner created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Banner'
+
+  /tokens:
+    get:
+      tags: [Tokens]
+      summary: List API tokens
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceHeader'
+      responses:
+        '200':
+          description: List of tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/APIToken'
+    post:
+      tags: [Tokens]
+      summary: Create API token
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                scopes:
+                  type: array
+                  items:
+                    type: string
+                    enum: [read:reports, read:events, read:users, write:events, admin]
+                expires_at:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Token created (includes the secret token - only shown once!)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/APIToken'
+                  - type: object
+                    properties:
+                      token:
+                        type: string
+                        description: The secret token (only shown once)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    WorkspaceHeader:
+      name: X-Workspace-ID
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        name:
+          type: string
+        is_super_admin:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        plan:
+          type: string
+        branding:
+          type: object
+        custom_domain:
+          type: string
+        is_suspended:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspace_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        public_key:
+          type: string
+        domain:
+          type: string
+        timezone:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    ProjectConfig:
+      type: object
+      properties:
+        autotrack:
+          type: object
+          properties:
+            page_views:
+              type: boolean
+            clicks:
+              type: boolean
+            forms:
+              type: boolean
+            scroll_depth:
+              type: boolean
+            outbound_links:
+              type: boolean
+            web_vitals:
+              type: boolean
+            spa_navigation:
+              type: boolean
+        mask_selectors:
+          type: array
+          items:
+            type: string
+        sample_rate:
+          type: number
+        session_timeout:
+          type: integer
+        banners:
+          type: array
+          items:
+            type: object
+
+    EventsReportRequest:
+      type: object
+      required: [project_id, time_range]
+      properties:
+        project_id:
+          type: string
+          format: uuid
+        event_name:
+          type: string
+        time_range:
+          $ref: '#/components/schemas/TimeRange'
+        interval:
+          type: string
+          enum: [hour, day, week, month]
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Filter'
+        breakdown:
+          type: string
+
+    EventsReportResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              count:
+                type: integer
+              unique_users:
+                type: integer
+              breakdown:
+                type: object
+        meta:
+          $ref: '#/components/schemas/ReportMeta'
+
+    FunnelReportRequest:
+      type: object
+      required: [project_id, steps, time_range]
+      properties:
+        project_id:
+          type: string
+          format: uuid
+        steps:
+          type: array
+          items:
+            type: object
+            properties:
+              event_name:
+                type: string
+        time_range:
+          $ref: '#/components/schemas/TimeRange'
+        conversion_window_hours:
+          type: integer
+          default: 168
+
+    FunnelReportResponse:
+      type: object
+      properties:
+        steps:
+          type: array
+          items:
+            type: object
+            properties:
+              step_number:
+                type: integer
+              event_name:
+                type: string
+              count:
+                type: integer
+              conversion_rate:
+                type: number
+              dropoff_rate:
+                type: number
+        overall_conversion:
+          type: number
+        meta:
+          $ref: '#/components/schemas/ReportMeta'
+
+    RetentionReportRequest:
+      type: object
+      required: [project_id, time_range]
+      properties:
+        project_id:
+          type: string
+          format: uuid
+        start_event:
+          type: string
+        return_event:
+          type: string
+        time_range:
+          $ref: '#/components/schemas/TimeRange'
+        retention_period:
+          type: string
+          enum: [day, week, month]
+        periods:
+          type: integer
+          default: 8
+
+    RetentionReportResponse:
+      type: object
+      properties:
+        cohorts:
+          type: array
+          items:
+            type: object
+            properties:
+              cohort_date:
+                type: string
+                format: date
+              cohort_size:
+                type: integer
+              retention_data:
+                type: array
+                items:
+                  type: number
+        average:
+          type: array
+          items:
+            type: number
+        meta:
+          $ref: '#/components/schemas/ReportMeta'
+
+    UserTimelineResponse:
+      type: object
+      properties:
+        user:
+          type: object
+        events:
+          type: array
+          items:
+            type: object
+        total:
+          type: integer
+
+    TimeRange:
+      type: object
+      required: [start, end]
+      properties:
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+
+    Filter:
+      type: object
+      properties:
+        property:
+          type: string
+        operator:
+          type: string
+          enum: [eq, neq, contains, gt, lt]
+        value:
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+
+    ReportMeta:
+      type: object
+      properties:
+        total_count:
+          type: integer
+        total_unique_users:
+          type: integer
+        query_time_ms:
+          type: integer
+
+    Banner:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          type: string
+          enum: [draft, active, paused, archived]
+        config:
+          type: object
+        targeting:
+          type: object
+        frequency_cap_per_user:
+          type: integer
+        frequency_cap_days:
+          type: integer
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    CreateBannerRequest:
+      type: object
+      required: [project_id, name]
+      properties:
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        config:
+          type: object
+        targeting:
+          type: object
+        frequency_cap_per_user:
+          type: integer
+          default: 1
+        frequency_cap_days:
+          type: integer
+          default: 7
+        variants:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              weight:
+                type: integer
+              html:
+                type: string
+              css:
+                type: string
+              cta_url:
+                type: string
+              cta_text:
+                type: string
+
+    APIToken:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspace_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        token_prefix:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        last_used_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time

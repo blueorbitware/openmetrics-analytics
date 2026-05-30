@@ -1,0 +1,16 @@
+{
+  "name": "@analytics/tracker",
+  "version": "1.0.0",
+  "description": "Analytics tracking SDK - single tag solution",
+  "main": "dist/t.js",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2020 --outfile=dist/t.js",
+    "build:watch": "esbuild src/index.ts --bundle --sourcemap --target=es2020 --outfile=dist/t.js --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "esbuild": "^0.20.2",
+    "typescript": "^5.4.3"
+  }
+}

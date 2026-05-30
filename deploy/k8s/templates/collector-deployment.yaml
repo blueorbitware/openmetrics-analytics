@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "analytics-platform.fullname" . }}-collector
+  labels:
+    app.kubernetes.io/component: collector
+    {{- include "analytics-platform.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.collector.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount.collector }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: collector
+      {{- include "analytics-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.collector.port }}"
+      labels:
+        app.kubernetes.io/component: collector
+        {{- include "analytics-platform.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "analytics-platform.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: collector
+          image: "{{ .Values.image.registry }}/{{ .Values.image.collector.repository }}:{{ .Values.image.collector.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.collector.port }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "{{ .Values.collector.port }}"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "analytics-platform.fullname" . }}-secrets
+                  key: database-url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "analytics-platform.fullname" . }}-secrets
+                  key: redis-url
+            - name: CORS_ORIGINS
+              value: "*"
+            - name: RATE_LIMIT_RPS
+              value: "10000"
+            - name: ENVIRONMENT
+              value: "production"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          resources:
+            {{- toYaml .Values.collector.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "analytics-platform.fullname" . }}-collector
+  labels:
+    app.kubernetes.io/component: collector
+    {{- include "analytics-platform.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.collector.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/component: collector
+    {{- include "analytics-platform.selectorLabels" . | nindent 4 }}
+---
+{{- if .Values.collector.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "analytics-platform.fullname" . }}-collector
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "analytics-platform.fullname" . }}-collector
+  minReplicas: {{ .Values.collector.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.collector.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.collector.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

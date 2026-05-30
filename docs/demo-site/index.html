@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo E-commerce Site - Analytics Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        header {
+            background: #1a1a2e;
+            color: white;
+            padding: 20px 0;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 30px;
+        }
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .products {
+            padding: 80px 0;
+        }
+        .products h2 {
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 36px;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .product-card {
+            border: 1px solid #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .product-image {
+            height: 200px;
+            background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+        .product-info {
+            padding: 20px;
+        }
+        .product-info h3 {
+            margin-bottom: 10px;
+        }
+        .product-price {
+            font-size: 24px;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .auth-section {
+            background: #f9fafb;
+            padding: 80px 0;
+        }
+        .auth-forms {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .auth-form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+        .auth-form h3 {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .cart-section {
+            padding: 80px 0;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        footer {
+            background: #1a1a2e;
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+        .console {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 400px;
+            max-height: 300px;
+            background: #1a1a2e;
+            color: #10b981;
+            font-family: monospace;
+            font-size: 12px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .console-header {
+            background: #2d2d44;
+            padding: 10px 15px;
+            font-weight: bold;
+            color: white;
+        }
+        .console-body {
+            padding: 15px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .console-body div {
+            margin-bottom: 5px;
+        }
+        @media (max-width: 768px) {
+            .auth-forms {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">DemoShop</div>
+                <div class="nav-links">
+                    <a href="#products" data-track="nav_click" data-track-props='{"link": "products"}'>Products</a>
+                    <a href="#auth" data-track="nav_click" data-track-props='{"link": "auth"}'>Account</a>
+                    <a href="#cart" data-track="nav_click" data-track-props='{"link": "cart"}'>Cart (0)</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Welcome to DemoShop</h1>
+            <p>Test the analytics platform with real e-commerce interactions</p>
+            <a href="#products" class="btn" data-track="hero_cta_click">Shop Now</a>
+        </div>
+    </section>
+
+    <section class="products" id="products">
+        <div class="container">
+            <h2>Featured Products</h2>
+            <div class="product-grid">
+                <div class="product-card">
+                    <div class="product-image">📱</div>
+                    <div class="product-info">
+                        <h3>Smartphone Pro</h3>
+                        <div class="product-price">$999.00</div>
+                        <button class="btn btn-primary" onclick="addToCart('smartphone-pro', 'Smartphone Pro', 999)">Add to Cart</button>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image">💻</div>
+                    <div class="product-info">
+                        <h3>Laptop Ultra</h3>
+                        <div class="product-price">$1,499.00</div>
+                        <button class="btn btn-primary" onclick="addToCart('laptop-ultra', 'Laptop Ultra', 1499)">Add to Cart</button>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image">🎧</div>
+                    <div class="product-info">
+                        <h3>Wireless Headphones</h3>
+                        <div class="product-price">$299.00</div>
+                        <button class="btn btn-primary" onclick="addToCart('wireless-headphones', 'Wireless Headphones', 299)">Add to Cart</button>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image">⌚</div>
+                    <div class="product-info">
+                        <h3>Smart Watch</h3>
+                        <div class="product-price">$399.00</div>
+                        <button class="btn btn-primary" onclick="addToCart('smart-watch', 'Smart Watch', 399)">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="auth-section" id="auth">
+        <div class="container">
+            <h2 style="text-align: center; margin-bottom: 50px;">Account</h2>
+            <div class="auth-forms">
+                <div class="auth-form">
+                    <h3>Sign Up</h3>
+                    <form onsubmit="handleSignup(event)">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="signup-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="signup-password" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" id="signup-name" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
+                    </form>
+                </div>
+                <div class="auth-form">
+                    <h3>Login</h3>
+                    <form onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="login-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="login-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+                    </form>
+                    <button onclick="handleLogout()" class="btn" style="width: 100%; margin-top: 10px;">Logout</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cart-section" id="cart">
+        <div class="container">
+            <h2 style="text-align: center; margin-bottom: 50px;">Shopping Cart</h2>
+            <div id="cart-items">
+                <p style="text-align: center; color: #666;">Your cart is empty</p>
+            </div>
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" onclick="beginCheckout()">Begin Checkout</button>
+                <button class="btn btn-primary" onclick="completePurchase()">Complete Purchase</button>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 DemoShop - Analytics Testing Site</p>
+            <p style="margin-top: 10px; opacity: 0.7;">All events are tracked and sent to the analytics platform</p>
+        </div>
+    </footer>
+
+    <div class="console">
+        <div class="console-header">📊 Analytics Events</div>
+        <div class="console-body" id="event-log"></div>
+    </div>
+
+    <!-- Analytics Tag - Replace pk_test_xxx with your actual public key -->
+    <script async src="http://localhost:8081/t.js?k=pk_test_demo"></script>
+    
+    <script>
+        let cart = [];
+        
+        function logEvent(name, props) {
+            const log = document.getElementById('event-log');
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML = `<div>[${time}] ${name}: ${JSON.stringify(props)}</div>` + log.innerHTML;
+        }
+
+        function addToCart(id, name, price) {
+            cart.push({ id, name, price, quantity: 1 });
+            updateCartUI();
+            
+            if (window.analytics) {
+                analytics.ecommerce.addToCart({
+                    product_id: id,
+                    name: name,
+                    price: price,
+                    quantity: 1,
+                    currency: 'USD'
+                });
+            }
+            logEvent('add_to_cart', { product_id: id, name, price });
+        }
+
+        function updateCartUI() {
+            const cartItems = document.getElementById('cart-items');
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p style="text-align: center; color: #666;">Your cart is empty</p>';
+                return;
+            }
+            
+            cartItems.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <span>${item.name}</span>
+                    <span>$${item.price.toFixed(2)}</span>
+                </div>
+            `).join('');
+            
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            cartItems.innerHTML += `
+                <div class="cart-item" style="font-weight: bold;">
+                    <span>Total</span>
+                    <span>$${total.toFixed(2)}</span>
+                </div>
+            `;
+        }
+
+        function beginCheckout() {
+            if (cart.length === 0) {
+                alert('Cart is empty!');
+                return;
+            }
+            
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            
+            if (window.analytics) {
+                analytics.ecommerce.checkout({
+                    products: cart,
+                    revenue: total,
+                    currency: 'USD'
+                });
+            }
+            logEvent('begin_checkout', { items: cart.length, revenue: total });
+        }
+
+        function completePurchase() {
+            if (cart.length === 0) {
+                alert('Cart is empty!');
+                return;
+            }
+            
+            const orderId = 'order_' + Date.now();
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            
+            if (window.analytics) {
+                analytics.ecommerce.purchase({
+                    order_id: orderId,
+                    products: cart,
+                    revenue: total,
+                    currency: 'USD'
+                });
+            }
+            logEvent('purchase', { order_id: orderId, revenue: total });
+            
+            cart = [];
+            updateCartUI();
+            alert('Purchase completed! Order: ' + orderId);
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            const name = document.getElementById('signup-name').value;
+            const userId = 'user_' + Date.now();
+            
+            if (window.analytics) {
+                analytics.auth.signup(userId, { email, name, source: 'demo_site' });
+            }
+            logEvent('sign_up', { user_id: userId, email });
+            alert('Account created! User ID: ' + userId);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const userId = 'user_' + btoa(email).slice(0, 12);
+            
+            if (window.analytics) {
+                analytics.auth.login(userId);
+                analytics.identify(userId, { email });
+            }
+            logEvent('login', { user_id: userId, email });
+            alert('Logged in as: ' + email);
+        }
+
+        function handleLogout() {
+            if (window.analytics) {
+                analytics.auth.logout();
+            }
+            logEvent('logout', {});
+            alert('Logged out');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.analytics) {
+                analytics.track('demo_page_loaded', { 
+                    page: 'home',
+                    timestamp: new Date().toISOString()
+                });
+            }
+            logEvent('page_loaded', { page: 'home' });
+        });
+    </script>
+</body>
+</html>

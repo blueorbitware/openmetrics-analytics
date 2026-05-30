@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Landing Page - Analytics Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 20px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        .hero p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            margin-left: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .features {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+        .feature-card {
+            padding: 30px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            text-align: center;
+        }
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        .products {
+            background: #f8f9fa;
+            padding: 80px 20px;
+        }
+        .products h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+        }
+        .product-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .product-img {
+            height: 200px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+        .product-info {
+            padding: 20px;
+        }
+        .product-info h3 {
+            margin-bottom: 10px;
+        }
+        .product-price {
+            font-size: 1.5rem;
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        .btn-add-cart {
+            width: 100%;
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            border-radius: 5px;
+        }
+        .cta {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+        }
+        .cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        .auth-section {
+            padding: 60px 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .auth-section h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .btn-auth {
+            width: 100%;
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 1.1rem;
+        }
+        footer {
+            background: #333;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .event-log {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            max-height: 300px;
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 15px;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 9999;
+        }
+        .event-log h4 {
+            color: #fff;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        .event-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+        .event-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Welcome to Analytics Demo</h1>
+        <p>Test all analytics tracking features including page views, clicks, e-commerce events, and banners!</p>
+        <button class="btn btn-primary" onclick="trackCTA('hero_cta')">Get Started Free</button>
+        <a href="#products" class="btn btn-secondary">View Products</a>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <h2>Features</h2>
+        <div class="feature-grid">
+            <div class="feature-card" onclick="trackFeatureClick('real-time')">
+                <h3>Real-Time Analytics</h3>
+                <p>See your visitors in real-time with live event streaming and instant insights.</p>
+            </div>
+            <div class="feature-card" onclick="trackFeatureClick('funnels')">
+                <h3>Funnel Analysis</h3>
+                <p>Track conversion funnels and identify where users drop off in their journey.</p>
+            </div>
+            <div class="feature-card" onclick="trackFeatureClick('retention')">
+                <h3>Retention Tracking</h3>
+                <p>Measure user retention with cohort analysis and engagement metrics.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section (E-commerce testing) -->
+    <section class="products" id="products">
+        <h2>Products</h2>
+        <div class="product-grid">
+            <div class="product-card">
+                <div class="product-img">📊</div>
+                <div class="product-info">
+                    <h3>Basic Plan</h3>
+                    <p>Perfect for small websites</p>
+                    <div class="product-price">$29/mo</div>
+                    <button class="btn btn-add-cart" onclick="addToCart('basic-plan', 'Basic Plan', 29)">Add to Cart</button>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-img">📈</div>
+                <div class="product-info">
+                    <h3>Pro Plan</h3>
+                    <p>For growing businesses</p>
+                    <div class="product-price">$99/mo</div>
+                    <button class="btn btn-add-cart" onclick="addToCart('pro-plan', 'Pro Plan', 99)">Add to Cart</button>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-img">🚀</div>
+                <div class="product-info">
+                    <h3>Enterprise</h3>
+                    <p>Unlimited everything</p>
+                    <div class="product-price">$299/mo</div>
+                    <button class="btn btn-add-cart" onclick="addToCart('enterprise', 'Enterprise Plan', 299)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <h2>Ready to Get Started?</h2>
+        <p>Join thousands of companies using our analytics platform.</p>
+        <button class="btn btn-primary" onclick="checkout()">Start Free Trial</button>
+    </section>
+
+    <!-- Auth Section (for testing login/signup events) -->
+    <section class="auth-section" id="signup">
+        <h2>Create Account</h2>
+        <form onsubmit="handleSignup(event)">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="signup-email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="signup-password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-auth">Sign Up</button>
+        </form>
+        <p style="text-align:center; margin-top:20px;">
+            Already have an account? <a href="#" onclick="handleLogin(event)">Log In</a>
+        </p>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Analytics Demo. Testing page for Web Analytics Platform.</p>
+    </footer>
+
+    <!-- Event Log (shows tracked events) -->
+    <div class="event-log" id="eventLog">
+        <h4>🔴 Live Event Log</h4>
+        <div id="eventList"></div>
+    </div>
+
+    <!-- Analytics Tracking Script -->
+    <script src="http://localhost:8081/t.js?k=YOUR_PUBLIC_KEY"></script>
+    
+    <script>
+        // Cart state
+        let cart = [];
+        
+        // Log events to the UI
+        function logEvent(eventName, data) {
+            const eventList = document.getElementById('eventList');
+            const time = new Date().toLocaleTimeString();
+            const item = document.createElement('div');
+            item.className = 'event-item';
+            item.innerHTML = `<strong>${time}</strong> - ${eventName}<br><small>${JSON.stringify(data || {})}</small>`;
+            eventList.insertBefore(item, eventList.firstChild);
+            
+            // Keep only last 20 events
+            while (eventList.children.length > 20) {
+                eventList.removeChild(eventList.lastChild);
+            }
+        }
+        
+        // Track CTA clicks
+        function trackCTA(buttonId) {
+            if (window.analytics) {
+                window.analytics.track('cta_click', { button_id: buttonId });
+                logEvent('cta_click', { button_id: buttonId });
+            }
+            alert('CTA clicked! Event tracked.');
+        }
+        
+        // Track feature card clicks
+        function trackFeatureClick(feature) {
+            if (window.analytics) {
+                window.analytics.track('feature_interest', { feature: feature });
+                logEvent('feature_interest', { feature: feature });
+            }
+        }
+        
+        // E-commerce: Add to Cart
+        function addToCart(productId, productName, price) {
+            cart.push({ productId, productName, price });
+            
+            if (window.analytics) {
+                window.analytics.addToCart({
+                    product_id: productId,
+                    product_name: productName,
+                    price: price,
+                    currency: 'USD',
+                    quantity: 1
+                });
+                logEvent('add_to_cart', { product_id: productId, product_name: productName, price: price });
+            }
+            alert(`Added ${productName} to cart! Event tracked.`);
+        }
+        
+        // E-commerce: Checkout
+        function checkout() {
+            if (cart.length === 0) {
+                // Add a product first
+                addToCart('pro-plan', 'Pro Plan', 99);
+            }
+            
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            
+            if (window.analytics) {
+                // Track checkout started
+                window.analytics.checkout({
+                    order_id: 'order_' + Date.now(),
+                    revenue: total,
+                    currency: 'USD'
+                });
+                logEvent('checkout_started', { revenue: total });
+                
+                // Simulate purchase after 1 second
+                setTimeout(() => {
+                    window.analytics.purchase({
+                        order_id: 'order_' + Date.now(),
+                        revenue: total,
+                        currency: 'USD'
+                    });
+                    logEvent('purchase', { revenue: total });
+                    alert('Purchase completed! Event tracked.');
+                }, 1000);
+            }
+        }
+        
+        // Auth: Signup
+        function handleSignup(e) {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            
+            if (window.analytics) {
+                // Identify user
+                window.analytics.identify('user_' + Date.now(), {
+                    email: email,
+                    plan: 'free'
+                });
+                
+                // Track signup
+                window.analytics.signup({ method: 'email' });
+                logEvent('signup', { email: email });
+            }
+            alert('Signup tracked! User identified.');
+        }
+        
+        // Auth: Login
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            if (window.analytics) {
+                window.analytics.login({ method: 'email' });
+                logEvent('login', { method: 'email' });
+            }
+            alert('Login event tracked!');
+        }
+        
+        // Log page view when analytics loads
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (window.analytics) {
+                    logEvent('page_view', { path: window.location.pathname, title: document.title });
+                    console.log('Analytics loaded successfully!');
+                } else {
+                    logEvent('ERROR', { message: 'Analytics not loaded' });
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
